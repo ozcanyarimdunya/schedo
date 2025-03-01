@@ -1,0 +1,59 @@
+services:
+  redis:
+    container_name: redis
+    image: redis:alpine
+
+  app:
+    container_name: web
+    build: .
+    command: "uv run uvicorn schedo.main:app --host 0.0.0.0 --port 8000"
+    ports:
+      - "8000:8000"
+    environment:
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+      CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+      CELERY_WORKER_CONCURRENCY: "4"
+    depends_on:
+      - redis
+
+  worker:
+    container_name: worker
+    build: .
+    command: "uv run celery -A schedo.tasks worker --loglevel=info --hostname='default@%h'"
+    environment:
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+      CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+    depends_on:
+      - redis
+
+  priority-worker:
+    container_name: priority-worker
+    build: .
+    command: "uv run celery -A schedo.tasks worker --loglevel=info --hostname='priority@%h' -Q high_priority"
+    environment:
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+      CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+    depends_on:
+      - redis
+
+  beat:
+    container_name: beat
+    build: .
+    command: "uv run celery -A schedo.tasks beat --loglevel=info"
+    environment:
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+      CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+    depends_on:
+      - redis
+
+  flower:
+    container_name: flower
+    build: .
+    command: "uv run celery -A schedo.tasks flower --port=5555 --loglevel=info"
+    ports:
+      - "5555:5555"
+    environment:
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+      CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+    depends_on:
+      - redis
