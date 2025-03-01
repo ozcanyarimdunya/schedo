@@ -11,7 +11,6 @@ Schedo is a simple demo task scheduling and processing system built with FastAPI
 - **Scheduled tasks** for automated processing
 - **Health checks** and system monitoring
 - **Docker support** for easy deployment
-- **Scalable architecture** with separate workers for different priorities
 
 ## Tech Stack
 
@@ -113,7 +112,3 @@ The system consists of several components:
 - **High Priority Worker**: Dedicated to high-priority tasks
 - **Beat Scheduler**: Manages scheduled tasks
 - **Flower**: Provides monitoring interface
-
-## License
-
-[Your chosen license]
